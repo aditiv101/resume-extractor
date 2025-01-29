@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #333333;
+            --card-background: #ffffff;
+            --border-color: #ddd;
+            --input-background: #f9f9f9;
+            --input-focus-background: #ffffff;
+            --button-color: #4a90e2;
+            --button-hover-color: #357ab7;
+            --table-header-color: #4a90e2;
+            --table-row-hover: #f1f1f1;
+        }
+
+        /* Make the body and html take up full height */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f7f7f7;
+        }
+
+        main.container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: auto; /* Allow scrolling if content exceeds */
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            text-align: left; /* Align title to the left */
+        }
+
+        /* Filter Panel */
+        #filterPanel {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: auto;
+        }
+
+        #filterPanel h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            text-align: left; /* Align filter panel heading to the left */
+        }
+
+        #filterPanel label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        #filterPanel input[type="text"],
+        #filterPanel input[type="number"] {
+            width: calc(50% - 10px);
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--input-background);
+            font-size: 1rem;
+            color: var(--secondary-color);
+            margin-right: 10px;
+            box-sizing: border-box;
+        }
+
+        #filterPanel input[type="text"]:focus,
+        #filterPanel input[type="number"]:focus {
+            background-color: var(--input-focus-background);
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        #filterPanel button {
+            padding: 10px 20px;
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        #filterPanel button:hover {
+            background-color: var(--button-hover-color);
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+            color: var(--secondary-color);
+        }
+
+        th {
+            background-color: var(--table-header-color);
+            color: white;
+            text-align: center;
+        }
+
+        td {
+            background-color: #ffffff;
+            vertical-align: middle;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #fafafa;
+        }
+
+        tr:hover td {
+            background-color: var(--table-row-hover);
+        }
+         /* Adjust width for specific columns */
+    th:nth-child(0),
+    td:nth-child(9) {
+        width: 40%; /* Certifications column */
+    }
+
+    th:nth-child(7),
+    td:nth-child(7) {
+        width: 55%; /* Experience column */
+    }
+
+    th:nth-child(8),
+    td:nth-child(8) {
+        width: 40%; /* Skills column */
+    }
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-start;
+            gap: 15px;
+        }
+
+        .actions button {
+            padding: 10px 20px;
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .actions button:hover {
+            background-color: var(--button-hover-color);
+        }
+
+    </style>
+</head>
+<body>
+
+<main class="container">
+    <h1>Resume Details</h1>
+
+    <!-- Filter Panel -->
+    <div id="filterPanel">
+        <h3>Filter Resumes</h3>
+        <div>
+            <label>Skills: <input type="text" id="skillsFilter" placeholder="e.g., Python, JavaScript"></label>
+            <label>Location: <input type="text" id="locationFilter" placeholder="e.g., New York"></label>
+        </div>
+        <div style="margin-top: 15px;">
+            <label>Experience (Years): 
+                <input type="number" id="minExperience" placeholder="Min">
+                <input type="number" id="maxExperience" placeholder="Max">
+            </label>
+        </div>
+        <div style="margin-top: 15px;">
+            <button id="applyFilters">Apply Filters</button>
+            <button id="clearFilters">Clear Filters</button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <table id="resumeTable">
+        <thead>
+            <tr>
+                <th>Select</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>LinkedIn</th>
+                <th>GitHub</th>
+                <th>Location</th>
+                <th>Experience</th>
+                <th>Skills</th>
+                <th>Projects</th>
+                <th>Education</th>
+                <th>Certifications</th>
+                <th>Resume Link</th> <!-- New column for Resume Link -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for resume in resumes %}
+                <tr>
+                    <td><input type="checkbox" class="row-select" data-file-path="{{ resume['file_path'] }}"></td>
+                    <td class="editable" data-column="Name">{{ resume['details']['Name'] }}</td>
+                    <td class="editable" data-column="Phone Number">{{ resume['details']['Phone Number'] }}</td>
+                    <td class="editable" data-column="Email Address">{{ resume['details']['Email Address'] }}</td>
+                    <td class="editable" data-column="LinkedIn Profile">{{ resume['details']['LinkedIn Profile'] }}</td>
+                    <td class="editable" data-column="GitHub">{{ resume['details']['GitHub'] }}</td>
+                    <td class="editable" data-column="Address/Location">{{ resume['details']['Address/Location'] }}</td>
+                    <td class="editable" data-column="Experience">{{ resume['sections']['Experience'] | join(', ') if resume['sections']['Experience'] else 'No Experience Listed' }}</td>
+                    <td class="editable" data-column="Skills">{{ resume['sections']['Skills'] | join(', ') if resume['sections']['Skills'] else 'No Skills Listed' }}</td>
+                    <td class="editable" data-column="Projects">{{ resume['sections']['Projects'] | join(', ') if resume['sections']['Projects'] else 'No Projects Listed' }}</td>
+                    <td class="editable" data-column="Education">{{ resume['sections']['Education'] | join(', ') if resume['sections']['Education'] else 'No Education Listed' }}</td>
+                    <td class="editable" data-column="Certifications">{{ resume['sections']['Certifications'] | join(', ') if resume['sections']['Certifications'] else 'No Certifications Listed' }}</td>
+                    <td><a href="{{ resume['file_url'] }}" target="_blank">View Resume</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Actions -->
+    <div class="actions">
+        <button id="deleteSelected">Delete Selected</button>
+        <button id="emailSelected">Email Selected</button>
+        <button id="saveChanges">Save Changes</button>
+    </div>
+</main>
+
+<script>
+    $(document).ready(function () {
+        const table = $('#resumeTable').DataTable();
+
+        // Filter functionality
+        $('#applyFilters').on('click', function () {
+            const skills = $('#skillsFilter').val().toLowerCase().split(',').map(s => s.trim());
+            const location = $('#locationFilter').val().toLowerCase();
+            const minExperience = parseInt($('#minExperience').val()) || 0;
+            const maxExperience = parseInt($('#maxExperience').val()) || Number.MAX_VALUE;
+
+            $.fn.dataTable.ext.search.push(function (settings, data) {
+                const rowSkills = data[5].toLowerCase();
+                const rowLocation = data[4].toLowerCase();
+                const experience = parseInt(data[6]) || 0;
+
+                return (
+                    (!skills[0] || skills.some(skill => rowSkills.includes(skill))) &&
+                    (!location || rowLocation.includes(location)) &&
+                    (experience >= minExperience && experience <= maxExperience)
+                );
+            });
+
+            table.draw();
+        });
+
+        $('#clearFilters').on('click', function () {
+            $('#skillsFilter').val('');
+            $('#locationFilter').val('');
+            $('#minExperience').val('');
+            $('#maxExperience').val('');
+
+            $.fn.dataTable.ext.search.pop();
+            table.draw();
+        });
+
+        // Edit cell functionality
+        $('#resumeTable').on('click', '.editable', function () {
+            const currentText = $(this).text();
+            const column = $(this).data('column');
+            const input = $('<input type="text" class="edit-input" />').val(currentText);
+
+            $(this).html(input);
+
+            input.on('blur', function () {
+                const newText = $(this).val();
+                $(this).parent().text(newText);
+
+                // Optionally, you can send the updated data to the server here
+                const rowData = $(this).closest('tr').children('td');
+                const updatedData = {
+                    [column]: newText,
+                    'file_path': rowData.find('.row-select').data('file-path')
+                };
+
+                // For demo purposes, logging updated data
+                console.log('Updated data:', updatedData);
+            });
+
+            input.focus();
+        });
+
+        // Save changes (optional)
+        $('#saveChanges').on('click', function () {
+            const changes = [];
+            $('.edit-input').each(function () {
+                changes.push($(this).val());
+            });
+
+            if (changes.length > 0) {
+                // Send changes to the server
+                fetch('/save_changes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ changes: changes })
+                }).then(res => res.json()).then(data => {
+                    alert('Changes saved successfully!');
+                });
+            }
+        });
+
+        // Delete selected resumes
+        $('#deleteSelected').on('click', function () {
+            const selectedFiles = $('.row-select:checked').map(function () {
+                return $(this).data('file-path');
+            }).get();
+
+            if (selectedFiles.length === 0) {
+                alert('No resumes selected!');
+                return;
+            }
+
+            fetch('/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ file_path: selectedFiles })
+            }).then(res => res.json()).then(data => {
+                alert(data.message || data.error);
+                location.reload();
+            });
+        });
+
+        // Email selected resumes
+        $('#emailSelected').on('click', function () {
+            const selectedEmails = $('.row-select:checked').map(function () {
+                return $(this).closest('tr').find('td:nth-child(4)').text();
+            }).get();
+
+            if (selectedEmails.length === 0) {
+                alert('No resumes selected!');
+                return;
+            }
+
+            alert(`Sending emails to: ${selectedEmails.join(', ')}`);
+        });
+    });
+</script>
+
+</body>
+</html>
